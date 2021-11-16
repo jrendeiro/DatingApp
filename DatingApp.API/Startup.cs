@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using API.SignalR;
 using AutoMapper;
 using DatingApp.API.Data;
 using DatingApp.API.Helpers;
@@ -18,9 +19,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+// using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.CSharp;
 
 namespace DatingApp.API
 {
@@ -64,6 +66,7 @@ namespace DatingApp.API
                      };
                  });
             services.AddScoped<LogUserActivity>();
+            services.AddSignalR();
         }
 
         public void ConfigureDevelopmentServices(IServiceCollection services)
@@ -97,7 +100,7 @@ namespace DatingApp.API
 
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, Seed seeder)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Seed seeder)
         {
             if (env.IsDevelopment())
             {
@@ -124,6 +127,10 @@ namespace DatingApp.API
             seeder.SeedUsers();
             app.UseCors(x => x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
             app.UseAuthentication();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapHub<PresenceHub>();
+            });
             app.UseDefaultFiles();
             app.UseStaticFiles();
             app.UseMvc(routes => {
